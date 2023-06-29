@@ -12,12 +12,15 @@ import {
 import useSWR from "swr";
 import idx from "idx";
 import { Product, ProductData, ProductsData } from "../../../type";
+import { fetcher } from "../util";
 
 const { Search } = Input;
 
+const LIMIT_PRODUCT = 4;
+
 enum PaginationType {
-  NEXT = 4,
-  PREV = -4,
+  NEXT = LIMIT_PRODUCT,
+  PREV = -LIMIT_PRODUCT,
 }
 
 interface ProductsProps {
@@ -25,14 +28,14 @@ interface ProductsProps {
   search?: string;
 }
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
-
-export default function Products() {
+export default function ProductsPage() {
   const [params, setParams] = useState<ProductsProps>({ search: "", skip: 0 });
   const { data, error, isLoading } = useSWR<ProductsData>(
     `https://dummyjson.com/products${
       params.search ? `/search?q=${params.search}&` : "?"
-    }limit=4&skip=${params.skip}&select=title,price,stock,brand,category`,
+    }limit=${LIMIT_PRODUCT}&skip=${
+      params.skip
+    }&select=title,price,stock,brand,category`,
     fetcher
   );
 
@@ -92,40 +95,42 @@ export default function Products() {
     }));
   };
 
-  if (error)
+  if (error) {
     return (
       <Result
         status="warning"
         title="There are some problems with your operation."
       />
     );
+  }
 
   return (
-    <Spin spinning={isLoading}>
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "end",
-          gap: 16,
-        }}
-      >
-        <Search
-          allowClear
-          placeholder="input search text"
-          onSearch={handleSearch}
-          defaultValue={params.search}
-          style={{ width: "60%" }}
-          enterButton
-        />
-        <Table
-          columns={columns}
-          dataSource={productsDataFix}
-          loading={isLoading}
-          pagination={false}
-          bordered
-          style={{ width: "100%" }}
-        />
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "end",
+        gap: 16,
+      }}
+    >
+      <Search
+        allowClear
+        placeholder="input search text"
+        onSearch={handleSearch}
+        defaultValue={params.search}
+        style={{ width: "60%" }}
+        enterButton
+      />
+      <Table
+        columns={columns}
+        dataSource={productsDataFix}
+        loading={isLoading}
+        pagination={false}
+        bordered
+        scroll={{ x: "100vh" }}
+        style={{ width: "100%" }}
+      />
+      <Spin spinning={isLoading}>
         <Space direction="horizontal" size={"middle"}>
           <Button
             type="default"
@@ -145,7 +150,7 @@ export default function Products() {
             Next
           </Button>
         </Space>
-      </div>
-    </Spin>
+      </Spin>
+    </div>
   );
 }

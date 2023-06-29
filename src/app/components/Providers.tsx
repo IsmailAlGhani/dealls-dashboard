@@ -29,7 +29,6 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   }, []);
 
   const onClick: MenuProps["onClick"] = (e) => {
-    console.log("click ", e);
     const keyFix = e.key;
     setCurrent(keyFix);
     router.push(`/${keyFix}`);
