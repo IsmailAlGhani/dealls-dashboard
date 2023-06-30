@@ -7,6 +7,7 @@ import {
   Cart,
   CartData,
   Product,
+  ProductCartDataFinal,
   ProductData,
   UserData,
 } from "../../../../type";
@@ -84,10 +85,14 @@ export default function CartDetailPage() {
     multiFetcher
   );
 
-  const productsDataFix: ProductData[] = productsFix
+  const productsDataFix: ProductCartDataFinal[] = productsFix
     ? productsFix.map((product) => {
+        const productCartTemp = products.filter(
+          (productCartTemp) => productCartTemp.id === product.id
+        );
         return {
           ...product,
+          ...productCartTemp[0],
           id: undefined,
           key: product.id,
         };
@@ -106,7 +111,7 @@ export default function CartDetailPage() {
     setSkip((prevState) => prevState + pagination);
   };
 
-  const columns: TableColumnsType<ProductData> = [
+  const columns: TableColumnsType<ProductCartDataFinal> = [
     {
       title: "Product Name",
       dataIndex: "title",
@@ -118,12 +123,32 @@ export default function CartDetailPage() {
       sorter: (a, b) => a.brand.length - b.brand.length,
     },
     {
-      title: "Price",
+      title: "Price Cart Item",
       dataIndex: "price",
       sorter: (a, b) => a.price - b.price,
     },
     {
-      title: "Stock",
+      title: "Quantity Cart Item",
+      dataIndex: "quantity",
+      sorter: (a, b) => a.quantity - b.quantity,
+    },
+    {
+      title: "Total Price Cart Item",
+      dataIndex: "total",
+      sorter: (a, b) => a.total - b.total,
+    },
+    {
+      title: "Discount Percentage",
+      dataIndex: "discountPercentage",
+      sorter: (a, b) => a.discountPercentage - b.discountPercentage,
+    },
+    {
+      title: "Discount Total Price Cart Item",
+      dataIndex: "discountedPrice",
+      sorter: (a, b) => a.discountedPrice - b.discountedPrice,
+    },
+    {
+      title: "Available Stock",
       dataIndex: "stock",
       sorter: (a, b) => a.stock - b.stock,
     },

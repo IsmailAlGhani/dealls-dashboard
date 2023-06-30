@@ -58,3 +58,5 @@ export interface UserData {
   firstName: string;
   lastName: string;
 }
+
+export interface ProductCartDataFinal extends ProductData, ProductCartData {}
