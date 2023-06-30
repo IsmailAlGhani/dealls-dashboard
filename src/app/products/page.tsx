@@ -25,7 +25,9 @@ import {
 } from "chart.js";
 import { Bar } from "react-chartjs-2";
 
-export const options = {
+const { Search } = Input;
+
+const options = {
   responsive: true,
   plugins: {
     legend: {
@@ -37,7 +39,6 @@ export const options = {
     },
   },
 };
-const { Search } = Input;
 
 const LIMIT_PRODUCT = 4;
 
