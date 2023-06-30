@@ -8,7 +8,6 @@ import {
   CartData,
   Product,
   ProductCartDataFinal,
-  ProductData,
   UserData,
 } from "../../../../type";
 import { batchReduce, fetcher, multiFetcher } from "@/app/util";
@@ -35,6 +34,7 @@ enum PaginationType {
 }
 
 export default function CartDetailPage() {
+  const [skip, setSkip] = useState<number>(0);
   const params = useParams();
   const cartId = params.cartId;
   const {
@@ -51,16 +51,6 @@ export default function CartDetailPage() {
     totalQuantity = 0,
     userId = 0,
   } = dataCart || {};
-
-  if (errorCart) {
-    return (
-      <Result
-        status="warning"
-        title="There are some problems with your operation."
-      />
-    );
-  }
-
   const { data: dataUser, isLoading: loadingUser } = useSWR<UserData>(
     userId
       ? `https://dummyjson.com/users/${userId}?select=firstName,lastName`
@@ -85,6 +75,15 @@ export default function CartDetailPage() {
     multiFetcher
   );
 
+  if (errorCart) {
+    return (
+      <Result
+        status="warning"
+        title="There are some problems with your operation."
+      />
+    );
+  }
+
   const productsDataFix: ProductCartDataFinal[] = productsFix
     ? productsFix.map((product) => {
         const productCartTemp = products.filter(
@@ -99,7 +98,6 @@ export default function CartDetailPage() {
       })
     : [];
 
-  const [skip, setSkip] = useState<number>(0);
   const productsFinal = batchReduce(productsDataFix, LIMIT_PRODUCT_CART);
   const currentPage = skip / LIMIT_PRODUCT_CART + 1;
   const maxPage = Math.ceil(productsDataFix.length / LIMIT_PRODUCT_CART);

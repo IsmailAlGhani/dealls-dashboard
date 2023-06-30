@@ -13,7 +13,7 @@ import {
 import useSWR from "swr";
 import idx from "idx";
 import { ProducMap, Product, ProductData, ProductsData } from "../../../type";
-import { fetcher } from "../util";
+import { fetcher } from "@/app/util";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -24,15 +24,6 @@ import {
   Legend,
 } from "chart.js";
 import { Bar } from "react-chartjs-2";
-
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend
-);
 
 export const options = {
   responsive: true,
@@ -66,6 +57,14 @@ export default function ProductsPage() {
   const [dataChartBrandFinalTemp, setDataChartBrandFinalTemp] = useState<
     Product[]
   >([]);
+  ChartJS.register(
+    CategoryScale,
+    LinearScale,
+    BarElement,
+    Title,
+    Tooltip,
+    Legend
+  );
   const { data: dataChartBrand, isLoading: loadingChartBrand } =
     useSWR<ProductsData>(
       `https://dummyjson.com/products?limit=100&select=stock,brand`,
