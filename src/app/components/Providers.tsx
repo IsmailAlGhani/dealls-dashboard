@@ -20,13 +20,16 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   const path = usePathname();
 
   useEffect(() => {
-    if (path.includes("products")) {
-      setCurrent("products");
-    }
-    if (path.includes("carts")) {
-      setCurrent("carts");
-    }
-  }, []);
+    const checkPath = () => {
+      if (path.includes("products")) {
+        setCurrent("products");
+      }
+      if (path.includes("carts")) {
+        setCurrent("carts");
+      }
+    };
+    checkPath();
+  }, [path]);
 
   const onClick: MenuProps["onClick"] = (e) => {
     const keyFix = e.key;
