@@ -81,13 +81,14 @@ export default function Providers({ children }: { children: React.ReactNode }) {
           onClick={onClick}
         />
       </Sider>
-      <Layout>
+      <Layout style={{ height: "100vh" }}>
         <Content
           style={{
             margin: "24px 16px",
             padding: 24,
             minHeight: 280,
             background: colorBgContainer,
+            overflow: "auto",
           }}
         >
           <Row justify={"center"}>

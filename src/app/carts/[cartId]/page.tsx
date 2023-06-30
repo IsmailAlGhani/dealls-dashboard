@@ -115,7 +115,11 @@ export default function CartDetailPage() {
     {
       title: "Product Name",
       dataIndex: "title",
-      sorter: (a, b) => a.title.length - b.title.length,
+      sorter: (a, b) => {
+        const aTitle = idx(a, (_) => _.title) || "";
+        const bTitle = idx(b, (_) => _.title) || "";
+        return aTitle.length - bTitle.length;
+      },
     },
     {
       title: "Brand",
@@ -125,7 +129,11 @@ export default function CartDetailPage() {
     {
       title: "Price Cart Item",
       dataIndex: "price",
-      sorter: (a, b) => a.price - b.price,
+      sorter: (a, b) => {
+        const aPrice = idx(a, (_) => _.price) || 0;
+        const bPrice = idx(b, (_) => _.price) || 0;
+        return aPrice - bPrice;
+      },
     },
     {
       title: "Quantity Cart Item",
@@ -155,7 +163,11 @@ export default function CartDetailPage() {
     {
       title: "Category",
       dataIndex: "category",
-      sorter: (a, b) => a.category.length - b.category.length,
+      sorter: (a, b) => {
+        const aCategory = idx(a, (_) => _.category) || "";
+        const bCategory = idx(b, (_) => _.category) || "";
+        return aCategory.length - bCategory.length;
+      },
     },
   ];
 

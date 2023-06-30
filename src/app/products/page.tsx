@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Space,
   Button,
@@ -8,12 +8,44 @@ import {
   Input,
   Table,
   TableColumnsType,
+  Slider,
 } from "antd";
 import useSWR from "swr";
 import idx from "idx";
-import { Product, ProductData, ProductsData } from "../../../type";
+import { ProducMap, Product, ProductData, ProductsData } from "../../../type";
 import { fetcher } from "../util";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+} from "chart.js";
+import { Bar } from "react-chartjs-2";
 
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
+
+export const options = {
+  responsive: true,
+  plugins: {
+    legend: {
+      position: "top" as const,
+    },
+    title: {
+      display: true,
+      text: "Chart.js Bar Chart",
+    },
+  },
+};
 const { Search } = Input;
 
 const LIMIT_PRODUCT = 4;
@@ -30,6 +62,49 @@ interface ProductsProps {
 
 export default function ProductsPage() {
   const [params, setParams] = useState<ProductsProps>({ search: "", skip: 0 });
+  const [dataChartBrandFinal, setDataChartBrandFinal] = useState<Product[]>([]);
+  const [dataChartBrandFinalTemp, setDataChartBrandFinalTemp] = useState<
+    Product[]
+  >([]);
+  const { data: dataChartBrand, isLoading: loadingChartBrand } =
+    useSWR<ProductsData>(
+      `https://dummyjson.com/products?limit=100&select=stock,brand`,
+      fetcher
+    );
+  useEffect(() => {
+    if (dataChartBrand) {
+      const productsChartData: Product[] =
+        idx(dataChartBrand, (_) => _.products) || [];
+      const outputCols = productsChartData.reduce((outputCols, currentData) => {
+        if (!outputCols[currentData.brand]) {
+          outputCols[currentData.brand] = currentData;
+        }
+        outputCols[currentData.brand].stock =
+          outputCols[currentData.brand].stock + currentData.stock;
+        return outputCols;
+      }, {} as ProducMap);
+      setDataChartBrandFinal(Object.values(outputCols));
+      setDataChartBrandFinalTemp(Object.values(outputCols));
+    }
+  }, [dataChartBrand]);
+  //   let dataChartBrandFinal = Object.values(outputCols);
+  const labels = dataChartBrandFinalTemp.map((dataChart) => dataChart.brand);
+  const dataChartStock = dataChartBrandFinalTemp.map(
+    (dataChart) => dataChart.stock
+  );
+
+  const dataTempChart = {
+    labels,
+    datasets: [
+      {
+        label: "Brand",
+        data: dataChartStock,
+        borderWidth: 1,
+        backgroundColor: "#37CAEC",
+      },
+    ],
+  };
+
   const { data, error, isLoading } = useSWR<ProductsData>(
     `https://dummyjson.com/products${
       params.search ? `/search?q=${params.search}&` : "?"
@@ -56,7 +131,11 @@ export default function ProductsPage() {
     {
       title: "Product Name",
       dataIndex: "title",
-      sorter: (a, b) => a.title.length - b.title.length,
+      sorter: (a, b) => {
+        const aTitle = idx(a, (_) => _.title) || "";
+        const bTitle = idx(b, (_) => _.title) || "";
+        return aTitle.length - bTitle.length;
+      },
     },
     {
       title: "Brand",
@@ -66,7 +145,11 @@ export default function ProductsPage() {
     {
       title: "Price",
       dataIndex: "price",
-      sorter: (a, b) => a.price - b.price,
+      sorter: (a, b) => {
+        const aPrice = idx(a, (_) => _.price) || 0;
+        const bPrice = idx(b, (_) => _.price) || 0;
+        return aPrice - bPrice;
+      },
     },
     {
       title: "Stock",
@@ -76,7 +159,11 @@ export default function ProductsPage() {
     {
       title: "Category",
       dataIndex: "category",
-      sorter: (a, b) => a.category.length - b.category.length,
+      sorter: (a, b) => {
+        const aCategory = idx(a, (_) => _.category) || "";
+        const bCategory = idx(b, (_) => _.category) || "";
+        return aCategory.length - bCategory.length;
+      },
     },
   ];
 
@@ -95,6 +182,12 @@ export default function ProductsPage() {
     }));
   };
 
+  const handleSlider = (dataSlider: [number, number]) => {
+    setDataChartBrandFinalTemp(
+      dataChartBrandFinal.slice(dataSlider[0] + 1, dataSlider[1])
+    );
+  };
+
   if (error) {
     return (
       <Result
@@ -105,52 +198,61 @@ export default function ProductsPage() {
   }
 
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "end",
-        gap: 16,
-      }}
-    >
-      <Search
-        allowClear
-        placeholder="input search text"
-        onSearch={handleSearch}
-        defaultValue={params.search}
-        style={{ width: "60%" }}
-        enterButton
+    <>
+      <Bar options={options} data={dataTempChart} />
+      <Slider
+        range
+        max={dataChartBrandFinal.length}
+        defaultValue={[1, dataChartBrandFinal.length]}
+        onAfterChange={handleSlider}
       />
-      <Table
-        columns={columns}
-        dataSource={productsDataFix}
-        loading={isLoading}
-        pagination={false}
-        bordered
-        scroll={{ x: "100vh" }}
-        style={{ width: "100%" }}
-      />
-      <Spin spinning={isLoading}>
-        <Space direction="horizontal" size={"middle"}>
-          <Button
-            type="default"
-            disabled={currentPage === 1}
-            onClick={() => handleParams(PaginationType.PREV)}
-          >
-            Prev
-          </Button>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "end",
+          gap: 16,
+        }}
+      >
+        <Search
+          allowClear
+          placeholder="input search text"
+          onSearch={handleSearch}
+          defaultValue={params.search}
+          style={{ width: "60%" }}
+          enterButton
+        />
+        <Table
+          columns={columns}
+          dataSource={productsDataFix}
+          loading={isLoading}
+          pagination={false}
+          bordered
+          scroll={{ x: "100vh" }}
+          style={{ width: "100%" }}
+        />
+        <Spin spinning={isLoading}>
           <Space direction="horizontal" size={"middle"}>
-            {`Page ${currentPage} / ${maxPage}`}
+            <Button
+              type="default"
+              disabled={currentPage === 1}
+              onClick={() => handleParams(PaginationType.PREV)}
+            >
+              Prev
+            </Button>
+            <Space direction="horizontal" size={"middle"}>
+              {`Page ${currentPage} / ${maxPage}`}
+            </Space>
+            <Button
+              type="default"
+              disabled={currentPage === maxPage}
+              onClick={() => handleParams(PaginationType.NEXT)}
+            >
+              Next
+            </Button>
           </Space>
-          <Button
-            type="default"
-            disabled={currentPage === maxPage}
-            onClick={() => handleParams(PaginationType.NEXT)}
-          >
-            Next
-          </Button>
-        </Space>
-      </Spin>
-    </div>
+        </Spin>
+      </div>
+    </>
   );
 }

@@ -9,11 +9,15 @@ export interface ProductsData extends Pagination {
 
 export interface Product {
   id: number;
-  title: string;
-  price: number;
+  title?: string;
+  price?: number;
   stock: number;
   brand: string;
-  category: string;
+  category?: string;
+}
+
+export interface ProducMap {
+  [productName: string]: Product;
 }
 
 export interface ProductData extends Omit<Product, "id"> {
